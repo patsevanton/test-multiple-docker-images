@@ -1,0 +1,44 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Get latest tag
+      id: get_tag
+      run: |
+        if [ -z "$(git tag)" ]; then
+          echo "::set-output name=new_tag::1"
+        else
+          latest_tag=$(git describe --tags --abbrev=0)
+          new_tag=$(echo $latest_tag | awk -F. '{OFS="."; $NF+=1; print $0}')
+          echo "::set-output name=new_tag::$new_tag"
+        fi
+
+    - name: Set new tag
+      run: |
+        git tag ${{ steps.get_tag.outputs.new_tag }}
+        git push origin ${{ steps.get_tag.outputs.new_tag }}
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v3
+      with:
+        context: ./example1
+        push: true
+        tags: ghcr.io/${{ github.repository }}:${{ steps.get_tag.outputs.new_tag }}

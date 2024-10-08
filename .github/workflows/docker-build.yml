@@ -24,17 +24,17 @@ jobs:
           echo "::set-output name=new_tag::$new_tag"
         fi
 
-    - name: Set new tag
-      run: |
-        git tag ${{ steps.get_tag.outputs.new_tag }}
-        git push origin ${{ steps.get_tag.outputs.new_tag }}
-
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.BUILD_PUSH_GITHUB_TOKEN }}
+
+    - name: Set new tag
+      run: |
+        git tag ${{ steps.get_tag.outputs.new_tag }}
+        git push origin ${{ steps.get_tag.outputs.new_tag }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v3

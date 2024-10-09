@@ -28,4 +28,6 @@ jobs:
         with:
           context: ./example1
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
